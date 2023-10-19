@@ -4,7 +4,6 @@ CAD.pinconfig=
 CAD.provider=
 Dma.Request0=SPI1_TX
 Dma.RequestsNb=1
-
 Dma.SPI1_TX.0.Direction=DMA_MEMORY_TO_PERIPH
 Dma.SPI1_TX.0.FIFOMode=DMA_FIFOMODE_DISABLE
 Dma.SPI1_TX.0.Instance=DMA2_Stream2

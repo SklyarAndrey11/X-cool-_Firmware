@@ -11,7 +11,6 @@
  *    - add the path as include path
  */
 
-
 /* clang-format off */
 #if 1 /*Set it to "1" to enable content*/
 

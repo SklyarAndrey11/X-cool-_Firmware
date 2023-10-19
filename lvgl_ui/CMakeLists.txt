@@ -1,7 +1,33 @@
-SET(SOURCES screens/ui_SettingTemperature.c
-    screens/ui_SettingAlarm.c
+SET(SOURCES screens/ui_Main.c
+    screens/ui_OperationModeScreenFreezer.c
+    screens/ui_OperationModeScreenFridge.c
+    screens/ui_OperationModeScreenBack.c
+    screens/ui_SettingData.c
+    screens/ui_SettingDateTime.c
+    screens/ui_SettingDateTimeYear.c
+    screens/ui_SettingDateTimeMonth.c
+    screens/ui_SettingDateTimeDay.c
+    screens/ui_SettingDateTimeHour.c
+    screens/ui_SettingDateTimeMinute.c
+    screens/ui_ServiceTemperature.c
+    screens/ui_ServiceTemperatureFreezer.c
+    screens/ui_ServiceTemperatureFridge.c
+    screens/ui_ServiceTemperatureFridgeSetpoint.c
+    screens/ui_ServiceTemperatureFridgeSetTem.c
+    screens/ui_ServiceTemperatureFridgeBack.c
+    screens/ui_ServiceTemperatureFreezeSetpoint.c
+    screens/ui_ServiceTemperatureFreezerSetTem.c
+    screens/ui_ServiceTemperatureFeezerBack.c
+    screens/ui_ServiceAlarms.c
+    screens/ui_ServiceAlarmsTemp.c
+    screens/ui_ServiceAlarmsTempDeviation.c
+    screens/ui_ServiceAlarmsTempDeviationEnter.c
+    screens/ui_WarningScreen.c
     ui.c
     components/ui_comp_hook.c
-    ui_helpers.c)
+    ui_helpers.c
+    fonts/ui_font_verdana244.c
+    fonts/ui_font_verdana364.c
+    fonts/ui_font_verdana404.c)
 
 add_library(ui ${SOURCES})
