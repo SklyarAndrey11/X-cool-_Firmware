@@ -46,8 +46,8 @@ typedef enum {
 } LCD_Horizontal_t;
 
 extern void Error_Handler(void);
-extern SPI_HandleTypeDef hspi1;
-
+extern SPI_HandleTypeDef hspi3;
+#define TFT_SPI       hspi3
 void ILI9341_Reset(void);
 void ILI9341_SoftReset(void);
 
@@ -65,7 +65,7 @@ static void LED_H(void);
 
 void sendSPI (uint8_t *data, int size)
 {
-	HAL_SPI_Transmit(&hspi1, data, size, HAL_MAX_DELAY);
+	HAL_SPI_Transmit(&TFT_SPI, data, size, HAL_MAX_DELAY);
 }
 
 void Delay (uint16_t ms)
@@ -86,6 +86,10 @@ static void RESET_H(void)
 static void CS_L(void)
 {
 	HAL_GPIO_WritePin(TFT_CS_GPIO_Port, TFT_CS_Pin, GPIO_PIN_RESET);
+}
+void CS_H(void)
+{
+	HAL_GPIO_WritePin(TFT_CS_GPIO_Port, TFT_CS_Pin, GPIO_PIN_SET);
 }
 
 static void DC_L(void)
@@ -253,8 +257,10 @@ void ILI9341_WritePixel(uint16_t x, uint16_t y, uint16_t color)
 	ILI9341_SetWindow(x, y, x, y);
 	// Enable to access GRAM
 	LCD_WR_REG(0x2c);
+	CS_L();
 	DC_H();
 	sendSPI (data, 2);
+	CS_H();
 }
 
 static void ConvHL(uint8_t *s, int32_t l)
@@ -274,20 +280,22 @@ void ILI9341_DrawBitmap(uint16_t w, uint16_t h, uint8_t *s)
 {
 	// Enable to access GRAM
 	LCD_WR_REG(0x2c);
-
+	CS_L();
 	DC_H();
 	ConvHL(s, (int32_t)w*h*2);
 	sendSPI((uint8_t*)s, w * h *2);
+	CS_H();
 }
 
 void ILI9341_DrawBitmapDMA(uint16_t w, uint16_t h, uint8_t *s)
 {
 	// Enable to access GRAM
 	LCD_WR_REG(0x2c);
-
+	CS_L();
 	DC_H();
 	ConvHL(s, (int32_t)w*h*2);
-	HAL_SPI_Transmit_DMA(&hspi1, (uint8_t*)s, w * h *2);
+	HAL_SPI_Transmit_DMA(&TFT_SPI, (uint8_t*)s, w * h *2);
+//	CS_H();
 }
 
 void ILI9341_EndOfDrawBitmap(void)
@@ -301,7 +309,6 @@ void ILI9341_Reset(void)
 	Delay(100);
 	RESET_H();
 	Delay(100);
-	CS_L();
 	LED_H();
 }
 
@@ -309,21 +316,27 @@ void ILI9341_SoftReset(void)
 {
 	uint8_t cmd;
 	cmd = 0x01; //Software reset
+	CS_L();
 	DC_L();
 	sendSPI (&cmd, 1);
+	CS_H();
 }
 
 
 void LCD_WR_REG(uint8_t data)
 {
+	CS_L();
 	DC_L();
 	sendSPI  (&data, 1);
+	CS_H();
 }
 
 static void LCD_WR_DATA(uint8_t data)
 {
+	CS_L();
 	DC_H();
 	sendSPI (&data, 1);
+	CS_H();
 }
 
 static void LCD_direction(LCD_Horizontal_t direction)

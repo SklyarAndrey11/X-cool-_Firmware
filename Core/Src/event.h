@@ -7,7 +7,7 @@
 
 #ifndef _APP_EVENT_
 #define _APP_EVENT_
-#include "stm32f4xx_hal.h"
+#include "stm32l4xx_hal.h"
 #define EVENT_ERR                  1
 #define EVENT_ERR_NONE             0
 

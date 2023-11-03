@@ -1,3 +1,4 @@
+
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
@@ -18,16 +19,23 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "adc.h"
+#include "crc.h"
 #include "dma.h"
+#include "fatfs.h"
+#include "i2c.h"
+#include "rtc.h"
 #include "spi.h"
-#include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "lvgl.h"
-#include "LCDController.h"
-#include "ui.h"
+#include "lcd_ui.h"
+#include "event.h"
+#include "DS1307.h"
+#include "led.h"
+#include "buzzer.h"
+#include "RTD.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -91,22 +99,54 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_DMA_Init();
+  MX_I2C2_Init();
   MX_SPI1_Init();
-  MX_USART1_UART_Init();
+  MX_ADC1_Init();
+  MX_SPI2_Init();
+  MX_FATFS_Init();
+  MX_SPI3_Init();
+  MX_RTC_Init();
+  MX_CRC_Init();
+  MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
-  lv_init();
+//  test_log_init();
+  event_init();
+  //Buzzer or led use
+  led_init();
+//  buzzer_init();
+  //Init i2c periph for DS1307
+  DS1307_Init(&hi2c2);
+  //RTD temperature sensor
+  rtd_init();
+  //Board test
+  board_test_init();
+  //Lcd tft 320x240
+  lcd_ui_init();
+  lcd_ui_clear();
+  lcd_main_screen_screen(SPEAKER_MODE_ON, -20, POWER_MODE_DC, OPERATION_MODE_FREEZER, 80, BATTERY_STATE_CHARGING);
+//  lcd_operation_mode_screen(OPERATION_MODE_FREEZER);
+//  lcd_turn_off_unit(ON);
+//  date_time_t date = {.year = 23, .month = 10, .day = 19, .hour = 12,.minute = 11};
+//  lcd_setting_date_time(SETTING_DATE_TIME_MINUTE, &date);
+//  lcd_service(SERVICE_CALIBRATION);
+//  lcd_service_temperature(SERVICE_TEMPERATURE_FREEZER);
+//  lcd_service_alarms(SERVICE_ALARMS_BACK);
+//  lcd_service_data_calibration(SERVICE_CALIBRATION_TEMP_OFFSET);
+//  lcd_service_temper_freezer_set_point(SERVICE_TEMPERATURE_FREEZER, -5);
+//  lcd_service_temper_set_point_value(SERVICE_TEMPERATURE_FREEZER, -5);
+//  lcd_service_alarm_temp(SERVICE_ALARM_TEMP_ALARM_DELAY);
+//  lcd_service_alarm_temp_set_alarm_delay(3);
 
-  lv_port_disp_init();
-
-  ui_init();
+//  lcd_service_alarms_warning(WARNING_MODE_FRIDGE, WARNING_TYPE_OVER_MAX_TEMP);
+//  lcd_service_data_calibration_set(15);
+  lcd_ui_refesh();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  lv_timer_handler();
-	  HAL_Delay(5);
+	 event_run_task();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -125,21 +165,33 @@ void SystemClock_Config(void)
 
   /** Configure the main internal regulator output voltage
   */
-  __HAL_RCC_PWR_CLK_ENABLE();
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+  if (HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure LSE Drive Capability
+  */
+  HAL_PWR_EnableBkUpAccess();
+  __HAL_RCC_LSEDRIVE_CONFIG(RCC_LSEDRIVE_LOW);
 
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
-  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSI|RCC_OSCILLATORTYPE_LSE
+                              |RCC_OSCILLATORTYPE_MSI;
+  RCC_OscInitStruct.LSEState = RCC_LSE_ON;
+  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
+  RCC_OscInitStruct.MSIState = RCC_MSI_ON;
+  RCC_OscInitStruct.MSICalibrationValue = 0;
+  RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_6;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
-  RCC_OscInitStruct.PLL.PLLM = 8;
-  RCC_OscInitStruct.PLL.PLLN = 100;
-  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-  RCC_OscInitStruct.PLL.PLLQ = 4;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_MSI;
+  RCC_OscInitStruct.PLL.PLLM = 1;
+  RCC_OscInitStruct.PLL.PLLN = 40;
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV7;
+  RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
+  RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -151,13 +203,17 @@ void SystemClock_Config(void)
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_3) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4) != HAL_OK)
   {
     Error_Handler();
   }
+
+  /** Enable MSI Auto calibration
+  */
+  HAL_RCCEx_EnableMSIPLLMode();
 }
 
 /* USER CODE BEGIN 4 */
