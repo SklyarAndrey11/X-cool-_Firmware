@@ -1,4 +1,3 @@
-
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
@@ -122,24 +121,11 @@ int main(void)
   board_test_init();
   //Lcd tft 320x240
   lcd_ui_init();
-  lcd_ui_clear();
-  lcd_main_screen_screen(SPEAKER_MODE_ON, -20, POWER_MODE_DC, OPERATION_MODE_FREEZER, 80, BATTERY_STATE_CHARGING);
-//  lcd_operation_mode_screen(OPERATION_MODE_FREEZER);
-//  lcd_turn_off_unit(ON);
-//  date_time_t date = {.year = 23, .month = 10, .day = 19, .hour = 12,.minute = 11};
-//  lcd_setting_date_time(SETTING_DATE_TIME_MINUTE, &date);
-//  lcd_service(SERVICE_CALIBRATION);
-//  lcd_service_temperature(SERVICE_TEMPERATURE_FREEZER);
-//  lcd_service_alarms(SERVICE_ALARMS_BACK);
-//  lcd_service_data_calibration(SERVICE_CALIBRATION_TEMP_OFFSET);
-//  lcd_service_temper_freezer_set_point(SERVICE_TEMPERATURE_FREEZER, -5);
-//  lcd_service_temper_set_point_value(SERVICE_TEMPERATURE_FREEZER, -5);
-//  lcd_service_alarm_temp(SERVICE_ALARM_TEMP_ALARM_DELAY);
-//  lcd_service_alarm_temp_set_alarm_delay(3);
-
-//  lcd_service_alarms_warning(WARNING_MODE_FRIDGE, WARNING_TYPE_OVER_MAX_TEMP);
-//  lcd_service_data_calibration_set(15);
-  lcd_ui_refesh();
+  lcd_interface_init();
+  main_app_init();
+//  lcd_ui_clear();
+//  lcd_main_screen_screen(SPEAKER_MODE_ON, -20, POWER_MODE_DC, OPERATION_MODE_FREEZER, 80, BATTERY_STATE_CHARGING);
+//  lcd_ui_refesh();
   /* USER CODE END 2 */
 
   /* Infinite loop */
